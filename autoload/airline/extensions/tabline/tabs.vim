@@ -41,9 +41,28 @@ function! airline#extensions#tabline#tabs#get()
     endif
   endif
 
+  let switch_buffers_and_tabs = get(g:, 'airline#extensions#tabline#switch_buffers_and_tabs', 0)
+
   let s:filtered_buflist =  airline#extensions#tabline#buflist#list()
 
   let b = airline#extensions#tabline#new_builder()
+
+  if get(g:, 'airline#extensions#tabline#show_splits', 1) == 1
+    let buffers = tabpagebuflist(curtab)
+    for nr in buffers
+      if index(s:filtered_buflist,nr) != -1
+        let group = airline#extensions#tabline#group_of_bufnr(buffers, nr) . "_right"
+        call b.add_section_spaced(group, '%(%{airline#extensions#tabline#get_buffer_name('.nr.')}%)')
+      endif
+    endfor
+    if get(g:, 'airline#extensions#tabline#show_buffers', 1)
+      call airline#extensions#tabline#add_label(b, 'buffers', 1)
+    endif
+  endif
+
+  call b.add_section('airline_tabfill', '')
+  call b.split()
+  call b.add_section('airline_tabfill', '')
 
   call airline#extensions#tabline#add_label(b, 'tabs', 0)
 
@@ -78,27 +97,11 @@ function! airline#extensions#tabline#tabs#get()
 
   call b.insert_titles(curtab, 1, tabpagenr('$'))
 
-  call b.add_section('airline_tabfill', '')
-  call b.split()
-  call b.add_section('airline_tabfill', '')
-
   if get(g:, 'airline#extensions#tabline#show_close_button', 1)
     call b.add_section('airline_tab_right', ' %999X'.
           \ get(g:, 'airline#extensions#tabline#close_symbol', 'X').'%X ')
   endif
 
-  if get(g:, 'airline#extensions#tabline#show_splits', 1) == 1
-    let buffers = tabpagebuflist(curtab)
-    for nr in buffers
-      if index(s:filtered_buflist,nr) != -1
-        let group = airline#extensions#tabline#group_of_bufnr(buffers, nr) . "_right"
-        call b.add_section_spaced(group, '%(%{airline#extensions#tabline#get_buffer_name('.nr.')}%)')
-      endif
-    endfor
-    if get(g:, 'airline#extensions#tabline#show_buffers', 1)
-      call airline#extensions#tabline#add_label(b, 'buffers', 1)
-    endif
-  endif
   call airline#extensions#tabline#add_tab_label(b)
 
   let s:current_bufnr = curbuf
